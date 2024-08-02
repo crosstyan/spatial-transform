@@ -2,7 +2,7 @@ import re
 import glm
 import random
 import string
-from typing import Optional, Self
+from typing import Any, Optional, Self
 from .pose import Pose
 
 
@@ -14,7 +14,7 @@ class Transform(Pose):
 
     Name:str
     _Parent: Optional[Self] = None
-    _Children: list["Transform"] = []
+    _Children: list[Self] = []
 
     @property
     def SpaceWorld(self) -> glm.mat4:
@@ -90,7 +90,7 @@ class Transform(Pose):
         return self._Parent
 
     @property
-    def Children(self) -> list["Transform"]:
+    def Children(self) -> list[Self]:
         """Attachted transforms. This transform builds the parent space for those children."""
         return self._Children
 
@@ -152,7 +152,7 @@ class Transform(Pose):
     def setEuler(self, degrees: glm.vec3, order: str = 'ZXY', extrinsic: bool = True):
         return super().setEuler(degrees, order, extrinsic)
 
-    def attach(self, *nodes: "Transform", keep: Optional[list[str]] = None) -> "Transform":
+    def attach(self, *nodes: Self, keep: Optional[list[str]] = None) -> Self:
         """Attaches the given transforms to this one as a child.
         - If keep contains properties -> the property is modified to keep its spatial algiment in world space.
         - If keep is None or empty -> Local space propteries do not change.
@@ -182,7 +182,7 @@ class Transform(Pose):
                 if 'scale' in keep: node.Scale = self.ScaleWorldInverse * node.Scale
         return self
 
-    def detach(self, *nodes: "Transform", keep: list[str] = ['position', 'rotation', 'scale']) -> "Transform":
+    def detach(self, *nodes: Self, keep: list[str] = ['position', 'rotation', 'scale']) -> Self:
         """Detachs the given child transform.
         - If keep contains properties -> the property is modified to keep its spatial algiment in world space.
         - If keep is None or empty -> Local space propteries do not change.
@@ -329,8 +329,7 @@ class Transform(Pose):
             result.extend(child.layout(result[-1][1] + 1, depth + 1)) # type: ignore
         return result
 
-    def printTree(self, markerStr="+- ", levelMarkers=[]) -> None:
-        # src: https://simonhessner.de/python-3-recursively-print-structured-tree-including-hierarchy-markers-using-depth-first-search/
+    def printTree(self, markerStr="+- ", levelMarkers:Optional[list[Any]]=None) -> None:
         """
         Recursive function that prints the hierarchical structure of a tree including markers that indicate parent-child relationships between nodes.
 
@@ -339,7 +338,11 @@ class Transform(Pose):
         - markerStr: String to print in front of each node  ("+- " by default)
         - levelMarkers: Internally used by recursion to indicate where to
                         print markers and connections (see explanations below)
+        
+        See also:
+        - https://simonhessner.de/python-3-recursively-print-structured-tree-including-hierarchy-markers-using-depth-first-search/
         """
+        if levelMarkers is None: levelMarkers = []
 
         def mapper(draw): return connectionStr if draw else emptyStr
         emptyStr = " " * len(markerStr)
@@ -353,7 +356,7 @@ class Transform(Pose):
             isLast = i == len(self.Children) - 1
             child.printTree(markerStr, [*levelMarkers, not isLast])
 
-    def filter(self, pattern: str, isEqual: bool = False, caseSensitive: bool = False) -> list["Transform"]:
+    def filter(self, pattern: str, isEqual: bool = False, caseSensitive: bool = False) -> list[Self]:
         """Tries to find transforms that matches the pattern in their name name.
         - If isEqual is true, the name has to be equal to the pattern. Otherwise the pattern must only appear anywhere in the name."""
         result = []
@@ -368,7 +371,7 @@ class Transform(Pose):
 
         return result
 
-    def filterRegex(self, pattern: str) -> list["Transform"]:
+    def filterRegex(self, pattern: str) -> list[Self]:
         """Tries to find transforms that matches the pattern in their name name."""
         result = []
 
