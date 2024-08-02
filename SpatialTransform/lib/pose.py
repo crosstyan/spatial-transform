@@ -1,4 +1,5 @@
 import glm
+from typing import Optional, Self
 from .euler import Euler
 
 
@@ -69,7 +70,7 @@ class Pose:
         """Current alignment of the Y-axis."""
         return self.Rotation * (0, 1, 0)
 
-    def __init__(self, position: glm.vec3 = None, rotation: glm.quat = None, scale: glm.vec3 = None) -> None:
+    def __init__(self, position: Optional[glm.vec3] = None, rotation: Optional[glm.quat] = None, scale: Optional[glm.vec3] = None) -> None:
         """Creates a new pose."""
 
         self._Space = glm.mat4(1)
@@ -88,13 +89,14 @@ class Pose:
         self.Position = glm.vec3(0)
         self.Rotation = glm.quat()
         self.Scale = glm.vec3(1)
+        return self
 
     def getEuler(self, order: str = 'ZXY', extrinsic: bool = True) -> glm.vec3:
         """Returns the current Rotation as euler angles in the given order.
         - If extrinsic the rotation will be around the world axes, ignoring previous rotations."""
         return glm.degrees(Euler.fromQuatTo(self.Rotation, order, extrinsic))
 
-    def setEuler(self, degrees: glm.vec3, order: str = 'ZXY', extrinsic: bool = True) -> "Pose":
+    def setEuler(self, degrees: glm.vec3, order: str = 'ZXY', extrinsic: bool = True) -> Self:
         """Converts the given euler anlges to quaternion and sets the rotation property.
         - If extrinsic the rotation will be around the world axes, ignoring previous rotations.
 
@@ -102,7 +104,7 @@ class Pose:
         self.Rotation = Euler.toQuatFrom(glm.radians(degrees), order, extrinsic)
         return self
 
-    def addEuler(self, degrees: glm.vec3, order: str = 'ZXY', extrinsic: bool = True, last: bool = True) -> "Pose":
+    def addEuler(self, degrees: glm.vec3, order: str = 'ZXY', extrinsic: bool = True, last: bool = True) -> Self:
         """Adds an euler rotation to the current rotation.
         - If extrinsic the rotation will be around the world axes, ignoring previous rotations.
         - If last is True -> The rotation is added after the current rotation.
@@ -115,7 +117,7 @@ class Pose:
 
         return self
 
-    def lookAt(self, direction: glm.vec3, up: glm.vec3 = glm.vec3(0, 1, 0)) -> "Pose":
+    def lookAt(self, direction: glm.vec3, up: glm.vec3 = glm.vec3(0, 1, 0)) -> Self:
         """Sets Rotation so the Z- axis aligns with the given direction.
         - Direction is considered as local space.
 
@@ -127,6 +129,6 @@ class Pose:
 
         return self
 
-    def duplicate(self) -> "Pose":
+    def duplicate(self):
         """Returns a duplicate of this pose."""
         return Pose(self.Position, self.Rotation, self.Scale)
