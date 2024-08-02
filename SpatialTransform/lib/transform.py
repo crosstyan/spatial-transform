@@ -13,7 +13,7 @@ class Transform(Pose):
     - Positive rotations are counter clockwise."""
 
     Name:str
-    _Parent: Optional["Transform"] = None
+    _Parent: Optional[Self] = None
     _Children: list["Transform"] = []
 
     @property
@@ -85,7 +85,7 @@ class Transform(Pose):
         return (self.RotationWorld * (0, 1, 0, 0)).xyz
 
     @property
-    def Parent(self) -> Optional["Transform"]:
+    def Parent(self) -> Optional[Self]:
         """Transform where this one aligns in repsect to it."""
         return self._Parent
 
